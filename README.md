@@ -3,15 +3,14 @@
 </div>
 
 # Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/945555c0-369d-4f41-acb7-5010ada775b9
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+const firebaseConfig = {
+  apiKey: "AIzaSyChElipOIWOnzMVA1n5SviAnN1eim1x-3g",
+  authDomain: "vacinakids-c338a.firebaseapp.com",
+  projectId: "vacinakids-c338a",
+  storageBucket: "vacinakids-c338a.firebasestorage.app",
+  messagingSenderId: "950469644793",
+  appId: "1:950469644793:web:ff051e9179488fba0bed28"
+};
 
 1. Install dependencies:
    `npm install`

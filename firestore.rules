@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: children
+    // Fields:
+    //   - name: string (required, 1-100 chars)
+    //   - birthDate: string (required, ISO 8601)
+    //   - motherName: string (required, 1-100 chars)
+    //   - susNumber: string (required, 15 digits)
+    //   - neighborhood: string (optional)
+    //   - address: string (optional)
+    //   - houseNumber: string (optional)
+    //   - microArea: string (optional)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp (required)
+    //   - ownerId: string (required, matches auth.uid)
+    //
+    // Collection: vaccine_records
+    // Fields:
+    //   - childId: string (required)
+    //   - vaccineId: string (required)
+    //   - dose: string (required)
+    //   - status: string (required, ['applied', 'pending', 'delayed'])
+    //   - dateApplied: string (optional, ISO 8601)
+    //   - dueDate: string (required, ISO 8601)
+    //   - batch: string (optional)
+    //   - healthUnit: string (optional)
+    //   - ownerId: string (required, matches auth.uid)
+    //
+    // Collection: microarea_configs
+    // Fields:
+    //   - microArea: string (required)
+    //   - password: string (optional)
+    //   - ownerId: string (required, matches auth.uid)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.email.lower() in ["najateste1993@gmail.com", "najateste@gmail.com"] && 
+             request.auth.token.email_verified == true;
+    }
+
+    function isDocOwner() {
+      return isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
+    }
+
+    function requestMatchesOwner() {
+      return isAdmin() || (isAuthenticated() && request.resource.data.ownerId == request.auth.uid);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}.*");
+    }
+
+    function isValidChild(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             isValidDateString(data.birthDate) &&
+             data.motherName is string && data.motherName.size() > 0 &&
+             data.susNumber is string && data.susNumber.size() >= 10 &&
+             (!('neighborhood' in data) || data.neighborhood is string) &&
+             (!('address' in data) || data.address is string) &&
+             (!('houseNumber' in data) || data.houseNumber is string);
+    }
+
+    function isValidVaccineRecord(data) {
+      return data.childId is string &&
+             data.vaccineId is string &&
+             data.status in ['applied', 'pending', 'delayed'] &&
+             isValidDateString(data.dueDate);
+    }
+
+    function isValidMicroAreaConfig(data) {
+      return data.microArea is string && data.microArea.size() > 0 &&
+             (!('password' in data) || data.password is string);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /children/{childId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
+      allow create: if requestMatchesOwner() && isValidChild(request.resource.data);
+      allow update: if (isAdmin() || isDocOwner()) && requestMatchesOwner() && isValidChild(request.resource.data);
+      allow delete: if isAdmin() || isDocOwner();
+    }
+
+    match /vaccine_records/{recordId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
+      allow create: if requestMatchesOwner() && isValidVaccineRecord(request.resource.data);
+      allow update: if (isAdmin() || isDocOwner()) && requestMatchesOwner() && isValidVaccineRecord(request.resource.data);
+      allow delete: if isAdmin() || isDocOwner();
+    }
+
+    match /microarea_configs/{configId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.ownerId == request.auth.uid);
+      allow create: if requestMatchesOwner() && isValidMicroAreaConfig(request.resource.data);
+      allow update: if (isAdmin() || isDocOwner()) && requestMatchesOwner() && isValidMicroAreaConfig(request.resource.data);
+      allow delete: if isAdmin() || isDocOwner();
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

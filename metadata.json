@@ -1,0 +1,5 @@
+{
+  "name": "VacinaKids ACS",
+  "description": "Sistema de gestão de vacinação para Agentes Comunitários de Saúde (ACS), focado no acompanhamento de crianças de 0 a 12 anos na microárea.",
+  "requestFramePermissions": []
+}

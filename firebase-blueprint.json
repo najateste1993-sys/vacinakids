@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "Child": {
+      "title": "Child",
+      "description": "Criança cadastrada na microárea",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Nome completo da criança" },
+        "birthDate": { "type": "string", "format": "date", "description": "Data de nascimento" },
+        "motherName": { "type": "string", "description": "Nome da mãe" },
+        "susNumber": { "type": "string", "description": "Número do cartão SUS" },
+        "neighborhood": { "type": "string", "description": "Bairro" },
+        "address": { "type": "string", "description": "Endereço completo" },
+        "houseNumber": { "type": "string", "description": "Número da casa" },
+        "microArea": { "type": "string", "description": "Identificador da microárea" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "birthDate", "motherName", "susNumber"]
+    },
+    "VaccineRecord": {
+      "title": "VaccineRecord",
+      "description": "Registro de vacina aplicada ou pendente",
+      "type": "object",
+      "properties": {
+        "childId": { "type": "string", "description": "ID da criança" },
+        "vaccineId": { "type": "string", "description": "ID da vacina (do calendário)" },
+        "dose": { "type": "string", "description": "Dose (1ª, 2ª, Reforço, etc)" },
+        "status": { "type": "string", "enum": ["applied", "pending", "delayed"] },
+        "dateApplied": { "type": "string", "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "batch": { "type": "string", "description": "Lote da vacina" },
+        "healthUnit": { "type": "string", "description": "Unidade de saúde onde foi aplicada" }
+      },
+      "required": ["childId", "vaccineId", "status", "dueDate"]
+    },
+    "MicroAreaConfig": {
+      "title": "MicroAreaConfig",
+      "description": "Configuração de acesso por senha para microárea",
+      "type": "object",
+      "properties": {
+        "microArea": { "type": "string", "description": "Identificador da microárea" },
+        "password": { "type": "string", "description": "Senha de acesso (opcional)" },
+        "ownerId": { "type": "string", "description": "ID do ACS proprietário" }
+      },
+      "required": ["microArea", "ownerId"]
+    }
+  },
+  "firestore": {
+    "/children": {
+      "schema": "Child",
+      "description": "Lista de crianças da microárea"
+    },
+    "/vaccine_records": {
+      "schema": "VaccineRecord",
+      "description": "Histórico de vacinação de todas as crianças"
+    },
+    "/microarea_configs": {
+      "schema": "MicroAreaConfig",
+      "description": "Configurações de segurança por microárea"
+    }
+  }
+}
